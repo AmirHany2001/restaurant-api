@@ -15,6 +15,7 @@ import restaurant.site.exception.DuplicateResourceException;
 import restaurant.site.exception.NotFoundException;
 import restaurant.site.repo.CategoryRepository;
 import restaurant.site.repo.ItemRepository;
+import restaurant.site.repo.OrderItemRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ public class ItemService {
 
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
+    private final OrderItemRepository orderItemRepository;
     private final ItemMapper itemMapper;
 
     @Transactional
@@ -67,12 +69,22 @@ public class ItemService {
 
 
 
-    @CacheEvict(value = "items", allEntries = true)
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "items", allEntries = true),
+            @CacheEvict(value = "category", allEntries = true)
+    })
     public void deleteItem(long id){
 
         if (!itemRepository.existsById(id)) {
             throw new NotFoundException("item.not.found");
         }
+
+        // order history must keep pointing to a real item
+        if (orderItemRepository.existsByItemId(id)) {
+            throw new BusinessLogicException("item.delete.has.orders");
+        }
+
         itemRepository.deleteById(id);
 
     }
