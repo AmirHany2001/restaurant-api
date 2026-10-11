@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: Restaurant
+
+
+  datasource:
+    driver-class-name: ${DB-DRIVER}
+    url: ${DB-URL}
+    username: ${DB-USERNAME}
+    password: ${DB-PASSWORD}
+
+  # JPA and Hibernate Configuration for Oracle
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+
+  # Cache
+  data:
+    redis:
+      host: ${CACHE-HOST}
+      port: ${CACHE-PORT}
+      timeout: 5000ms
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT-SECRET-KEY}
+      expiration: ${JWT-EXPIRATION}
+    admin:
+      secret: ${ADMIN-SECRET}
+
