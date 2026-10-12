@@ -1,9 +1,12 @@
 package restaurant.site.config;
 
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -16,9 +19,16 @@ import java.time.Duration;
 @EnableCaching // without this, @Cacheable / @CacheEvict are silently ignored
 public class CacheConfig {
 
-    // Spring Boot's RedisCacheManager picks up this bean automatically
+    // Spring Boot 4 no longer creates a CacheManager for us (the cache auto-configuration
+    // is a separate module), so we create the Redis one ourselves.
     @Bean
-    public RedisCacheConfiguration redisCacheConfiguration() {
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        return RedisCacheManager.builder(connectionFactory)
+                .cacheDefaults(redisCacheConfiguration())
+                .build();
+    }
+
+    private RedisCacheConfiguration redisCacheConfiguration() {
 
         // Only allow our own DTOs + basic JDK types to be read back from Redis
         PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
