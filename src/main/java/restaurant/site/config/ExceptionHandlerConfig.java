@@ -85,6 +85,18 @@ public class ExceptionHandlerConfig {
                 chooseLanguageService.getAcceptedLanguageMessage(exception.getCode(), exception.getArgs()));
     }
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException exception) {
+        return build(HttpStatus.UNAUTHORIZED,
+                chooseLanguageService.getAcceptedLanguageMessage(exception.getCode()));
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ErrorResponse> handleTooManyRequests(TooManyRequestsException exception) {
+        return build(HttpStatus.TOO_MANY_REQUESTS,
+                chooseLanguageService.getAcceptedLanguageMessage(exception.getCode()));
+    }
+
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ErrorResponse> handleForbidden(ForbiddenException exception) {
         return build(HttpStatus.FORBIDDEN,

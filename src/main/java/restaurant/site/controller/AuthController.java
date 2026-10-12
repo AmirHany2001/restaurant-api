@@ -4,6 +4,7 @@ package restaurant.site.controller;
 import restaurant.site.dto.AuthDto;
 import restaurant.site.dto.UserDto;
 import restaurant.site.services.application.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +28,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthDto.@NonNull Response> login(@Valid @RequestBody AuthDto.Request request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<AuthDto.@NonNull Response> login(@Valid @RequestBody AuthDto.Request request,
+                                                           HttpServletRequest httpRequest) {
+        // behind a reverse proxy this is the proxy address unless forward headers are configured
+        return ResponseEntity.ok(authService.login(request, httpRequest.getRemoteAddr()));
     }
 
 
