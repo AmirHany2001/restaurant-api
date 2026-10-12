@@ -38,6 +38,16 @@ public class Order {
     private Order.Status status = Status.pending;
 
     public enum Status {
-        pending, approved , completed
+        pending, approved, completed, cancelled;
+
+        // allowed moves: pending -> approved | cancelled, approved -> completed
+        // completed and cancelled are final
+        public boolean canChangeTo(Status next) {
+            return switch (this) {
+                case pending -> next == approved || next == cancelled;
+                case approved -> next == completed;
+                case completed, cancelled -> false;
+            };
+        }
     }
 }

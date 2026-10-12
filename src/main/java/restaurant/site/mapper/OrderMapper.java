@@ -10,6 +10,4 @@ public interface OrderMapper {
 
     OrderDto.Response toResponse (Order order);
 
-    Order toEntity(OrderDto.Request request);
-
 }

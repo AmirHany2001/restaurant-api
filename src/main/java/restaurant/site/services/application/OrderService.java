@@ -134,8 +134,8 @@ public class OrderService {
                 .orElseThrow(() -> new NotFoundException("order.not.found"));
 
 
-        if (status.ordinal() <= order.getStatus().ordinal()) {
-            throw new BusinessLogicException("order.status.change.invalid");
+        if (!order.getStatus().canChangeTo(status)) {
+            throw new BusinessLogicException("order.status.change.invalid", order.getStatus(), status);
         }
 
         order.setStatus(status);
@@ -156,10 +156,11 @@ public class OrderService {
 
 
         if (order.getStatus() != Order.Status.pending) {
-            throw new BusinessLogicException("order.cancellation.failed");
+            throw new BusinessLogicException("order.cancellation.failed", order.getStatus());
         }
 
-        orderRepository.delete(order);
+        // keep the order for history; only its status changes
+        order.setStatus(Order.Status.cancelled);
     }
 
 }
