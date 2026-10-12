@@ -127,6 +127,7 @@ public class ItemService {
     }
 
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "items", key = "#id")
     public ItemDto.Response getItemById(long id){
         Item item = itemRepository.findById(id)
@@ -136,6 +137,7 @@ public class ItemService {
     }
 
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "items", key = "'all'")
     public List<ItemDto.Response> getItems(){
         return itemRepository.findAll()
@@ -145,6 +147,7 @@ public class ItemService {
     }
 
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "items", key = "#status")
     public List<ItemDto.Response> getItemsByStatus(Item.Status status){
         return itemRepository.findByStatus(status)
@@ -153,6 +156,7 @@ public class ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "items", key = "'itemId: ' + #id +' '+'itemSize: ' + #size")
     public BigDecimal getItemPriceBySize(long id , Item.ItemSize size){
         Item item = itemRepository.findById(id)
