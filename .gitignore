@@ -32,3 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 .env
+
+### Secrets and local settings ###
+keys.env
+*.env
+!*.env.example
+.claude/settings.local.json
