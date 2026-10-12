@@ -41,6 +41,34 @@ public class UserDto {
 
     }
 
+    // Every field is optional: only the fields the client sends are changed.
+    // (The validation annotations ignore null, so a missing field passes.)
+    @Setter
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateRequest {
+
+        @Size(min = 3, max = 100, message = "user.fullName.size")
+        private String fullName;
+
+        @Email(message = "user.email.invalid")
+        private String email;
+
+        @Size(min = 8, message = "user.password.size")
+        @Pattern(
+                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).*$",
+                message = "user.password.invalid"
+        )
+        private String password;
+
+        @Pattern(regexp = "^01[0-9]{9}$", message = "user.phone.invalid")
+        private String phoneNumber;
+
+        @Size(min = 5, message = "user.address.size")
+        private String address;
+    }
+
     @Setter
     @Getter
     @NoArgsConstructor

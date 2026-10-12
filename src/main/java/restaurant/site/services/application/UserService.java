@@ -7,6 +7,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 import restaurant.site.dto.UserDto;
 import restaurant.site.entity.User;
@@ -58,19 +59,24 @@ public class UserService {
             put = @CachePut(value = "users", key = "#id"),
             evict = @CacheEvict(value = "users", key = "'all'")
     )
-    public UserDto.Response update(Long id, UserDto.Request request) {
+    public UserDto.Response update(Long id, UserDto.UpdateRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("user.not.found", id));
 
 
-        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+        // hasText = not null and not blank, so "" or "   " means "not sent"
+        if (StringUtils.hasText(request.getFullName())) {
+            user.setFullName(request.getFullName());
+        }
+
+        if (StringUtils.hasText(request.getEmail()) && !request.getEmail().equalsIgnoreCase(user.getEmail())) {
             if (userRepository.existsByEmailIgnoreCase(request.getEmail())) {
                 throw new DuplicateResourceException("user.duplicate.email", request.getEmail());
             }
             user.setEmail(request.getEmail());
         }
 
-        if (request.getPhoneNumber() != null && !request.getPhoneNumber().equals(user.getPhoneNumber())) {
+        if (StringUtils.hasText(request.getPhoneNumber()) && !request.getPhoneNumber().equals(user.getPhoneNumber())) {
             if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
                 throw new DuplicateResourceException("user.duplicate.PhoneNumber", request.getPhoneNumber());
             }
@@ -78,12 +84,12 @@ public class UserService {
         }
 
 
-        if(request.getPassword() != null && !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (StringUtils.hasText(request.getPassword()) && !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
 
-        if(request.getAddress() != null && !request.getAddress().equals(user.getAddress())) {
+        if (StringUtils.hasText(request.getAddress()) && !request.getAddress().equals(user.getAddress())) {
             user.setAddress(request.getAddress());
         }
 

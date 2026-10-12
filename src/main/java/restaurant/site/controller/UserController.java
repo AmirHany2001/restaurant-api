@@ -33,7 +33,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id)")
     @PutMapping("/updateUser/{id}")
-    public ResponseEntity<UserDto.Response> update(@PathVariable Long id, @Valid @RequestBody UserDto.Request request) {
+    public ResponseEntity<UserDto.Response> update(@PathVariable Long id, @Valid @RequestBody UserDto.UpdateRequest request) {
         return ResponseEntity.ok(userService.update(id, request));
     }
 
