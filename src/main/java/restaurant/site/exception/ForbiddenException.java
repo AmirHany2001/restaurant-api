@@ -7,18 +7,18 @@ package restaurant.site.exception;
 import lombok.Getter;
 
 @Getter
-public class UnauthorizedException extends RuntimeException {
+public class ForbiddenException extends RuntimeException {
 
     private final String code;
     private final Object[] args;
 
-    public UnauthorizedException(String code) {
+    public ForbiddenException(String code) {
         super(code);
         this.code = code;
         this.args = null;
     }
 
-    public UnauthorizedException(String code, Object... args) {
+    public ForbiddenException(String code, Object... args) {
         super(code);
         this.code = code;
         this.args = args;
