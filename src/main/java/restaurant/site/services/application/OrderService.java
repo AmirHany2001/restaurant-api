@@ -34,10 +34,10 @@ public class OrderService {
 
     @Transactional
     @CacheEvict(value = "orders", allEntries = true)
-    public OrderDto.Response createOrder(OrderDto.Request request) {
+    public OrderDto.Response createOrder(OrderDto.Request request, String email) {
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(()->new NotFoundException("user.not.found"));
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(()->new NotFoundException("user.not.found.email"));
 
         if (request.getOrderItems() == null || request.getOrderItems().isEmpty()) {
             throw new BusinessLogicException("order.size");
@@ -145,9 +145,14 @@ public class OrderService {
 
     @Transactional
     @CacheEvict(value = "orders", allEntries = true)
-    public void cancelOrder(long id) {
+    public void cancelOrder(long id, String email, boolean isAdmin) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("order.not.found"));
+
+        // a customer can only cancel his own order; "not found" hides that other orders exist
+        if (!isAdmin && !order.getUser().getEmail().equalsIgnoreCase(email)) {
+            throw new NotFoundException("order.not.found");
+        }
 
 
         if (order.getStatus() != Order.Status.pending) {

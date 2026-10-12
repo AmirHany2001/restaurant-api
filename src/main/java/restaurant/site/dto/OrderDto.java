@@ -15,12 +15,9 @@ public class OrderDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Request{
-        @NotNull(message = "user.not.found")
-        private Long userId;
-
         @NotEmpty(message = "order.size")
         @Valid
-        List<OrderItemDto>  orderItems;
+        private List<OrderItemDto> orderItems;
     }
 
     @Getter

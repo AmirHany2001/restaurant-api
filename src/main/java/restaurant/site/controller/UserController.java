@@ -19,6 +19,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
+    @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id)")
     @GetMapping("/getUser/{id}")
     public ResponseEntity<UserDto.Response> getById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getById(id));
@@ -30,11 +31,13 @@ public class UserController {
         return ResponseEntity.ok(userService.getAll());
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id)")
     @PutMapping("/updateUser/{id}")
     public ResponseEntity<UserDto.Response> update(@PathVariable Long id, @Valid @RequestBody UserDto.Request request) {
         return ResponseEntity.ok(userService.update(id, request));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id)")
     @DeleteMapping("/deleteUser/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);
