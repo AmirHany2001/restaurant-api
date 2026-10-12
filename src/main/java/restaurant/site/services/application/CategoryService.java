@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import restaurant.site.dto.CategoryDto;
 import restaurant.site.entity.Category;
 import restaurant.site.mapper.CategoryMapper;
@@ -11,7 +12,9 @@ import restaurant.site.exception.BusinessLogicException;
 import restaurant.site.exception.DuplicateResourceException;
 import restaurant.site.exception.NotFoundException;
 import restaurant.site.repo.CategoryRepository;
+import restaurant.site.repo.ItemRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,9 +22,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CategoryService {
     private final CategoryRepository categoryRepository;
+    private final ItemRepository itemRepository;
     private final CategoryMapper categoryMapper;
 
-    @CacheEvict(value = "category", key = "'all'")
+    @Transactional
+    @CacheEvict(value = "category", allEntries = true)
     public CategoryDto.Response create(CategoryDto.Request request) {
 
         if (categoryRepository.existsByNameIgnoreCase(request.getName())) {
@@ -29,23 +34,26 @@ public class CategoryService {
         }
         Category category = categoryMapper.toEntity(request);
 
-        category.setItems(null);
+        category.setItems(new ArrayList<>()); // empty list, so the response shows [] and not null
 
         return categoryMapper.toResponse(categoryRepository.save(category));
     }
 
+    @Transactional
     @CacheEvict(value = "category", allEntries = true)
     public void delete(String name) {
         Category category = categoryRepository.findByNameIgnoreCase(name)
                 .orElseThrow(() -> new NotFoundException("category.not.found"));
 
-        if(!category.getItems().isEmpty()){
+        // one cheap query instead of loading every item of the category
+        if (itemRepository.existsByCategoryId(category.getId())) {
             throw new BusinessLogicException("category.has.items");
         }
 
         categoryRepository.delete(category);
     }
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "category" , key = "'all'")
     public List<CategoryDto.Response> getAll(){
         return categoryRepository.findAll().stream()
@@ -53,7 +61,8 @@ public class CategoryService {
     }
 
 
-    @Cacheable(value = "category" , key = "#name")
+    @Transactional(readOnly = true)
+    @Cacheable(value = "category" , key = "#name.toLowerCase()")
     public CategoryDto.Response getByName(String name){
 
         return categoryRepository.findByNameIgnoreCase(name)

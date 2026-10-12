@@ -24,9 +24,10 @@ public class ItemDto {
         private String description;
 
         // size -> price for that size
-        @NotEmpty(message = "error.invalid.parameter")
-        @Positive(message = "item.price.min")
-        private Map<Item.ItemSize, Double> price;
+        @NotEmpty(message = "item.price.required")
+        private Map<Item.ItemSize,
+                @NotNull(message = "item.price.required")
+                @Positive(message = "item.price.min") Double> price;
 
         @NotNull(message = "category.id.required")
         private Long categoryId;

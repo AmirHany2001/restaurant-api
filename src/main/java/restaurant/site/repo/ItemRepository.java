@@ -17,6 +17,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     boolean existsByNameIgnoreCase(String name);
 
+    boolean existsByCategoryId(Long categoryId);
+
     Optional<Item> findByNameIgnoreCase(String name);
 
 
