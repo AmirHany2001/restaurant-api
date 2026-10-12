@@ -2,7 +2,7 @@ package restaurant.site.config.Security;
 
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import restaurant.site.exception.UnauthorizedException;
+import io.jsonwebtoken.JwtException;
 import restaurant.site.services.security.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -58,8 +58,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-        } catch (Exception e) {
-            throw new UnauthorizedException("error.validation");
+        } catch (JwtException | IllegalArgumentException e) {
+            // Bad, expired or tampered token: do NOT throw (an exception thrown in a filter
+            // never reaches @RestControllerAdvice). Leave the request unauthenticated; a
+            // protected URL is then answered with 401 by SecurityErrorHandler.
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
@@ -70,7 +73,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request)  {
 
-        return request.getRequestURI().equals("/auth/**");
+        // "/auth/**" is a pattern, not a path, so equals() never matched
+        return request.getRequestURI().startsWith("/auth/");
 
     }
 }

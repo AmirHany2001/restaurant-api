@@ -76,14 +76,14 @@ public class ExceptionHandlerConfig {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException exception) {
         return build(HttpStatus.UNAUTHORIZED,
-                chooseLanguageService.getAcceptedLanguageMessage(exception.getMessage()));
+                chooseLanguageService.getAcceptedLanguageMessage("error.unauthorized"));
     }
 
     // Spring Security — user does not have required role
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException exception) {
         return build(HttpStatus.FORBIDDEN,
-                chooseLanguageService.getAcceptedLanguageMessage(exception.getMessage()));
+                chooseLanguageService.getAcceptedLanguageMessage("error.access.denied"));
     }
 
     // URL does not exist
