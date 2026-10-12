@@ -91,6 +91,7 @@ public class OrderService {
         return orderMapper.toResponse(orderRepository.save(order));
     }
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "orders", key = "#id")
     public OrderDto.Response getOrderById(Long id) {
         Order order = orderRepository.findById(id)
@@ -98,6 +99,7 @@ public class OrderService {
         return orderMapper.toResponse(order);
     }
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "orders", key = "'user: ' + #userId")
     public List<OrderDto.Response> getOrdersByUser(Long userId) {
 
@@ -110,6 +112,7 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "orders", key = "#status")
     public List<OrderDto.Response> getOrdersByStatus(Order.Status status) {
         return orderRepository.findByStatus(status)
@@ -118,6 +121,7 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "orders", key = "'all'")
     public List<OrderDto.Response> getAllOrders() {
         return orderRepository.findAll()
