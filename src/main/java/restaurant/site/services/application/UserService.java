@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import restaurant.site.dto.UserDto;
 import restaurant.site.entity.User;
 import restaurant.site.mapper.UserMapper;
+import restaurant.site.exception.BusinessLogicException;
 import restaurant.site.exception.DuplicateResourceException;
 import restaurant.site.exception.NotFoundException;
 import restaurant.site.repo.UserRepository;
@@ -45,12 +46,40 @@ public class UserService {
     }
 
 
+    @Transactional
     @CacheEvict(value = "users", allEntries = true)
     public void delete(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new NotFoundException("user.not.found", id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("user.not.found", id));
+
+        checkNotLastAdmin(user);
+        userRepository.delete(user);
+    }
+
+    // ADMIN <-> USER. Only an admin can call this (see UserController).
+    @Transactional
+    @CacheEvict(value = "users", allEntries = true)
+    public UserDto.Response changeRole(Long id, User.Role role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("user.not.found", id));
+
+        if (user.getRole() == role) {
+            throw new BusinessLogicException("user.role.duplicate");
         }
-        userRepository.deleteById(id);
+
+        if (role != User.Role.ADMIN) {
+            checkNotLastAdmin(user);
+        }
+
+        user.setRole(role);
+        return userMapper.toResponse(userRepository.save(user));
+    }
+
+    // the system must always keep at least one admin
+    private void checkNotLastAdmin(User user) {
+        if (user.getRole() == User.Role.ADMIN && userRepository.countByRole(User.Role.ADMIN) <= 1) {
+            throw new BusinessLogicException("user.last.admin");
+        }
     }
 
 

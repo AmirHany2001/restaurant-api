@@ -13,7 +13,6 @@ import restaurant.site.exception.DuplicateResourceException;
 import restaurant.site.exception.NotFoundException;
 import restaurant.site.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,12 +26,9 @@ public class AuthService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${application.security.admin.secret}")
-    private String adminSecret;
-
     @Transactional
     @CacheEvict(value = "users", key = "'all'")
-    public AuthDto.Response register(UserDto.Request request , String secret) {
+    public AuthDto.Response register(UserDto.Request request) {
 
         if (userRepository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new DuplicateResourceException("user.duplicate.email", request.getEmail());
@@ -47,7 +43,8 @@ public class AuthService {
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        user.setRole(secret.equals(adminSecret) ? User.Role.ADMIN : User.Role.USER);
+        // public registration can only create customers; admins come from AdminInitializer or another admin
+        user.setRole(User.Role.USER);
 
         User savedUser = userRepository.save(user);
 

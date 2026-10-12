@@ -27,6 +27,8 @@ application:
     jwt:
       secret-key: ${JWT-SECRET-KEY}
       expiration: ${JWT-EXPIRATION}
+    # Optional: if both are set, an admin with this email is created (or promoted) at startup
     admin:
-      secret: ${ADMIN-SECRET}
+      email: ${ADMIN-EMAIL:}
+      password: ${ADMIN-PASSWORD:}
 

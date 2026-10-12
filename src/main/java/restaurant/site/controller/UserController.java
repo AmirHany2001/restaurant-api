@@ -37,6 +37,13 @@ public class UserController {
         return ResponseEntity.ok(userService.update(id, request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/changeRole/{id}")
+    public ResponseEntity<UserDto.Response> changeRole(@PathVariable Long id,
+                                                       @Valid @RequestBody UserDto.RoleRequest request) {
+        return ResponseEntity.ok(userService.changeRole(id, request.getRole()));
+    }
+
     @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#id)")
     @DeleteMapping("/deleteUser/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

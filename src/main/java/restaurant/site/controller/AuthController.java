@@ -21,13 +21,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthDto.@NonNull Response> register(
-            @Valid @RequestBody UserDto.Request request ,
-            @RequestHeader(
-                    value = "secret",
-                    required = false,
-                    defaultValue = "") String secret) {
+            @Valid @RequestBody UserDto.Request request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(authService.register(request , secret));
+                .body(authService.register(request));
     }
 
     @PostMapping("/login")

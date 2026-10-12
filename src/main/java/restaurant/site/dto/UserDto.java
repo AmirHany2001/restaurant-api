@@ -73,6 +73,16 @@ public class UserDto {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class RoleRequest {
+
+        @NotNull(message = "user.role.required")
+        private Role role;
+    }
+
+    @Setter
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Response {
         private Long id;
         private String fullName;
