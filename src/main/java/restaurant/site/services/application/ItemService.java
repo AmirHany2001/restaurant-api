@@ -58,7 +58,10 @@ public class ItemService {
 
 
     @Transactional
-    @CacheEvict(value = "items", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "items", allEntries = true),
+            @CacheEvict(value = "category", allEntries = true) // category responses contain items
+    })
     public void changePrice (long id , Map<Item.ItemSize, BigDecimal> newPrice){
         Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("item.not.found"));
@@ -107,7 +110,10 @@ public class ItemService {
 
 
     @Transactional
-    @CacheEvict(value = "items", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "items", allEntries = true),
+            @CacheEvict(value = "category", allEntries = true) // category responses contain items
+    })
     public void changeState(long id , Item.Status status){
 
         Item item = itemRepository.findById(id)
