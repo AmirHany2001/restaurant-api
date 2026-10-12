@@ -30,7 +30,6 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
-    private final ItemService itemService;
 
     @Transactional
     @CacheEvict(value = "orders", allEntries = true)
@@ -49,7 +48,7 @@ public class OrderService {
         order.setStatus(Order.Status.pending);
 
         List<OrderItem> lines = new ArrayList<>();
-        double total = 0.0;
+        BigDecimal total = BigDecimal.ZERO;
 
         for(OrderItemDto items : request.getOrderItems()) {
 
@@ -65,7 +64,8 @@ public class OrderService {
                 throw new BusinessLogicException("item.quantity.min");
             }
 
-            Double itemPrice = itemService.getItemPriceBySize(item.getId(),items.getSize());
+            // read the price from the database row, never from the cache: the cache can be stale
+            BigDecimal itemPrice = item.getPrice().get(items.getSize());
 
             if( itemPrice == null){
                 throw new BusinessLogicException("order.size.available");
@@ -82,7 +82,7 @@ public class OrderService {
             orderItem.setNotes(items.getNotes());
 
             lines.add(orderItem);
-            total += itemPrice * items.getQuantity() ;
+            total = total.add(itemPrice.multiply(BigDecimal.valueOf(items.getQuantity())));
         }
 
         order.setOrderItems(lines);

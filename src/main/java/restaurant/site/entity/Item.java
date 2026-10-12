@@ -1,6 +1,7 @@
 package restaurant.site.entity;
 
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,8 +29,8 @@ public class Item {
     @ElementCollection
     @CollectionTable(name = "item_prices", joinColumns = @JoinColumn(name = "item_id"))
     @MapKeyColumn(name = "size")
-    @Column(name = "price", nullable = false)
-    private Map<ItemSize, Double> price;
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    private Map<ItemSize, BigDecimal> price;
 
 
     @ManyToOne(fetch = FetchType.LAZY)

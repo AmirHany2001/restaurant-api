@@ -1,5 +1,6 @@
 package restaurant.site.dto;
 
+import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import restaurant.site.entity.Item;
@@ -27,7 +28,8 @@ public class ItemDto {
         @NotEmpty(message = "item.price.required")
         private Map<Item.ItemSize,
                 @NotNull(message = "item.price.required")
-                @Positive(message = "item.price.min") Double> price;
+                @Positive(message = "item.price.min")
+                @Digits(integer = 8, fraction = 2, message = "item.price.digits") BigDecimal> price;
 
         @NotNull(message = "category.id.required")
         private Long categoryId;
@@ -43,7 +45,7 @@ public class ItemDto {
     public static class Response{
         private long id;
         private String name;
-        private Map<Item.ItemSize, Double> price;
+        private Map<Item.ItemSize, BigDecimal> price;
         private String description;
         private Item.Status status;
         private String categoryName;

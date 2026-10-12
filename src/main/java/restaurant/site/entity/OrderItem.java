@@ -1,5 +1,6 @@
 package restaurant.site.entity;
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -35,8 +36,8 @@ public class OrderItem {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false)
-    private Double UnitPriceAtOrder;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal unitPriceAtOrder;
 
     private String notes;
 

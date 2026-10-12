@@ -1,5 +1,8 @@
 package restaurant.site.services.application;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.EnumMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -56,9 +59,22 @@ public class ItemService {
 
     @Transactional
     @CacheEvict(value = "items", allEntries = true)
-    public void changePrice (long id , Map<Item.ItemSize, Double> price){
+    public void changePrice (long id , Map<Item.ItemSize, BigDecimal> newPrice){
         Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("item.not.found"));
+
+        if (newPrice == null || newPrice.isEmpty()) {
+            throw new BusinessLogicException("item.price.required");
+        }
+
+        // always 2 decimals, so 10 and 10.00 count as the same price
+        Map<Item.ItemSize, BigDecimal> price = new EnumMap<>(Item.ItemSize.class);
+        for (Map.Entry<Item.ItemSize, BigDecimal> entry : newPrice.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null || entry.getValue().signum() <= 0) {
+                throw new BusinessLogicException("item.price.min");
+            }
+            price.put(entry.getKey(), entry.getValue().setScale(2, RoundingMode.HALF_UP));
+        }
 
         if(Objects.equals(price, item.getPrice())){
             throw new BusinessLogicException("item.price.duplicate");
@@ -132,10 +148,15 @@ public class ItemService {
     }
 
     @Cacheable(value = "items", key = "'itemId: ' + #id +' '+'itemSize: ' + #size")
-    public Double getItemPriceBySize(long id , Item.ItemSize size){
+    public BigDecimal getItemPriceBySize(long id , Item.ItemSize size){
         Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("item.not.found"));
-        return item.getPrice().get(size);
+
+        BigDecimal price = item.getPrice().get(size);
+        if (price == null) { // the cache does not accept null values
+            throw new BusinessLogicException("order.size.available");
+        }
+        return price;
     }
 
 }

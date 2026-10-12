@@ -1,5 +1,6 @@
 package restaurant.site.controller;
 
+import java.math.BigDecimal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
@@ -30,7 +31,7 @@ public class ItemController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/changePrice/{id}")
     public ResponseEntity<Void> changePrice(@PathVariable long id,
-                                            @RequestBody Map<Item.ItemSize, Double> price) {
+                                            @RequestBody Map<Item.ItemSize, BigDecimal> price) {
         itemService.changePrice(id, price);
         return ResponseEntity.accepted().eTag("item.price.change").build();
     }
@@ -65,7 +66,7 @@ public class ItemController {
     }
 
     @GetMapping("/getItemPriceBySize/{id}/{size}")
-    public ResponseEntity<Double> getItemPriceBySize(@PathVariable long id,@Valid @PathVariable Item.ItemSize size) {
+    public ResponseEntity<BigDecimal> getItemPriceBySize(@PathVariable long id,@Valid @PathVariable Item.ItemSize size) {
         return ResponseEntity.ok(itemService.getItemPriceBySize(id, size));
     }
 

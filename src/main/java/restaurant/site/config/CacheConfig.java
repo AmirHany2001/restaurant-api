@@ -26,6 +26,7 @@ public class CacheConfig {
                 .allowIfSubType("java.util.")
                 .allowIfSubType("java.time.")
                 .allowIfSubType("java.lang.")
+                .allowIfSubType("java.math.") // BigDecimal
                 .build();
 
         GenericJacksonJsonRedisSerializer jsonSerializer = GenericJacksonJsonRedisSerializer.builder()

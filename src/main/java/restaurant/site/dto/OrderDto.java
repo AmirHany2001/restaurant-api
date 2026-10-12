@@ -1,5 +1,6 @@
 package restaurant.site.dto;
 
+import java.math.BigDecimal;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import restaurant.site.entity.Order;
@@ -28,7 +29,7 @@ public class OrderDto {
         private Long orderId;
         private LocalDateTime orderDate;
         private List<OrderItemDto> orderItems;
-        private Double totalPrice ;
+        private BigDecimal totalPrice;
         private Order.Status status ;
     }
 
