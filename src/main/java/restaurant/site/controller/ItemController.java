@@ -10,12 +10,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import restaurant.site.dto.ItemDto;
 import restaurant.site.dto.MessageResponse;
+import restaurant.site.dto.PageResponse;
+import restaurant.site.util.Paging;
 import restaurant.site.entity.Item;
 import restaurant.site.services.application.ItemService;
 import restaurant.site.services.language.ChooseLanguageService;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -62,11 +63,14 @@ public class ItemController {
         return ResponseEntity.ok(itemService.getItemById(id));
     }
 
-    // GET /items                    -> all items
-    // GET /items?status=available   -> only the items with that status
+    // GET /items                              -> first page of all items
+    // GET /items?status=available&page=1&size=20
     @GetMapping
-    public ResponseEntity<List<ItemDto.Response>> getItems(@RequestParam(required = false) Item.@Nullable Status status) {
-        return ResponseEntity.ok(status == null ? itemService.getItems() : itemService.getItemsByStatus(status));
+    public ResponseEntity<PageResponse<ItemDto.Response>> getItems(
+            @RequestParam(required = false) Item.@Nullable Status status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "" + Paging.DEFAULT_SIZE) int size) {
+        return ResponseEntity.ok(itemService.getItems(status, Paging.page(page), Paging.size(size)));
     }
 
     @GetMapping("/{id}/price/{size}")

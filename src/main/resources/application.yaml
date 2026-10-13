@@ -15,6 +15,12 @@ spring:
 
   # JPA / Hibernate. ddl-auto and show-sql are set per profile:
   #   application-dev.yaml  and  application-prod.yaml
+  jpa:
+    properties:
+      hibernate:
+        # when a page of orders/items is mapped, load their lazy children 50 at a time
+        # instead of one query per row (the "N+1" problem)
+        default_batch_fetch_size: 50
 
   # Cache
   data:

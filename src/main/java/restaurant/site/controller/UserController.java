@@ -8,11 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import restaurant.site.dto.MessageResponse;
+import restaurant.site.dto.PageResponse;
+import restaurant.site.util.Paging;
 import restaurant.site.dto.UserDto;
 import restaurant.site.services.application.UserService;
 import restaurant.site.services.language.ChooseLanguageService;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -30,8 +31,10 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<UserDto.Response>> getAll() {
-        return ResponseEntity.ok(userService.getAll());
+    public ResponseEntity<PageResponse<UserDto.Response>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "" + Paging.DEFAULT_SIZE) int size) {
+        return ResponseEntity.ok(userService.getAll(Paging.page(page), Paging.size(size)));
     }
 
     // only the fields that are sent are changed

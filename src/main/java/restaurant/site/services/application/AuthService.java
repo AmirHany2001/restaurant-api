@@ -13,7 +13,6 @@ import restaurant.site.dto.UserDto;
 import restaurant.site.entity.User;
 import restaurant.site.mapper.UserMapper;
 import restaurant.site.exception.DuplicateResourceException;
-import restaurant.site.exception.NotFoundException;
 import restaurant.site.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,7 +40,7 @@ public class AuthService {
     }
 
     @Transactional
-    @CacheEvict(value = "users", key = "'all'")
+    @CacheEvict(value = "users", allEntries = true)
     public AuthDto.Response register(UserDto.Request request) {
 
         if (userRepository.existsByEmailIgnoreCase(request.getEmail())) {

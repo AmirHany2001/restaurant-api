@@ -9,7 +9,11 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import restaurant.site.dto.ItemDto;
+import restaurant.site.dto.PageResponse;
 import restaurant.site.entity.Category;
 import restaurant.site.entity.Item;
 import restaurant.site.mapper.ItemMapper;
@@ -20,10 +24,8 @@ import restaurant.site.repo.CategoryRepository;
 import restaurant.site.repo.ItemRepository;
 import restaurant.site.repo.OrderItemRepository;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -137,27 +139,22 @@ public class ItemService {
     }
 
 
+    // status == null -> all items. The sort is fixed (by id) so pages are stable and the client
+    // cannot sort by a field we did not expect.
     @Transactional(readOnly = true)
-    @Cacheable(value = "items", key = "'all'")
-    public List<ItemDto.Response> getItems(){
-        return itemRepository.findAll()
-                .stream()
-                .map(itemMapper::toResponse)
-                .collect(Collectors.toList());
-    }
+    @Cacheable(value = "items", key = "'list:' + #status + ':' + #page + ':' + #size")
+    public PageResponse<ItemDto.Response> getItems(Item.Status status, int page, int size){
+        PageRequest pageable = PageRequest.of(page, size, Sort.by("id"));
 
+        Page<Item> items = status == null
+                ? itemRepository.findAll(pageable)
+                : itemRepository.findByStatus(status, pageable);
 
-    @Transactional(readOnly = true)
-    @Cacheable(value = "items", key = "#status")
-    public List<ItemDto.Response> getItemsByStatus(Item.Status status){
-        return itemRepository.findByStatus(status)
-                .stream()
-                .map(itemMapper::toResponse)
-                .collect(Collectors.toList());
+        return PageResponse.from(items.map(itemMapper::toResponse));
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "items", key = "'itemId: ' + #id +' '+'itemSize: ' + #size")
+    @Cacheable(value = "items", key = "'price:' + #id + ':' + #size")
     public BigDecimal getItemPriceBySize(long id , Item.ItemSize size){
         Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("item.not.found", id));

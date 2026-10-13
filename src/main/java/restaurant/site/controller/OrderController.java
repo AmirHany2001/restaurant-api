@@ -12,11 +12,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import restaurant.site.dto.MessageResponse;
 import restaurant.site.dto.OrderDto;
+import restaurant.site.dto.PageResponse;
+import restaurant.site.util.Paging;
 import restaurant.site.entity.Order;
 import restaurant.site.services.application.OrderService;
 import restaurant.site.services.language.ChooseLanguageService;
 
-import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -41,18 +42,24 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
-    // GET /orders                  -> all orders
-    // GET /orders?status=pending   -> only the orders with that status
+    // GET /orders                              -> first page of all orders (newest first)
+    // GET /orders?status=pending&page=1&size=20
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<OrderDto.Response>> getOrders(@RequestParam(required = false) Order.@Nullable Status status) {
-        return ResponseEntity.ok(status == null ? orderService.getAllOrders() : orderService.getOrdersByStatus(status));
+    public ResponseEntity<PageResponse<OrderDto.Response>> getOrders(
+            @RequestParam(required = false) Order.@Nullable Status status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "" + Paging.DEFAULT_SIZE) int size) {
+        return ResponseEntity.ok(orderService.getOrders(status, Paging.page(page), Paging.size(size)));
     }
 
     @PreAuthorize("hasRole('ADMIN') or @authz.isSelf(#userId)")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<OrderDto.Response>> getOrdersByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(orderService.getOrdersByUser(userId));
+    public ResponseEntity<PageResponse<OrderDto.Response>> getOrdersByUser(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "" + Paging.DEFAULT_SIZE) int size) {
+        return ResponseEntity.ok(orderService.getOrdersByUser(userId, Paging.page(page), Paging.size(size)));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

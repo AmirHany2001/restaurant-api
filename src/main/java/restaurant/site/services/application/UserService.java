@@ -2,13 +2,16 @@ package restaurant.site.services.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import restaurant.site.dto.PageResponse;
 import restaurant.site.dto.UserDto;
 import restaurant.site.entity.User;
 import restaurant.site.mapper.UserMapper;
@@ -17,8 +20,6 @@ import restaurant.site.exception.DuplicateResourceException;
 import restaurant.site.exception.NotFoundException;
 import restaurant.site.repo.UserRepository;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -37,17 +38,19 @@ public class UserService {
     }
 
 
-    @Cacheable(value = "users", key = "'all'")
-    public List<UserDto.Response> getAll() {
-        return userRepository.findAll()
-                .stream()
-                .map(userMapper::toResponse)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    @Cacheable(value = "users", key = "'list:' + #page + ':' + #size")
+    public PageResponse<UserDto.Response> getAll(int page, int size) {
+        Page<User> users = userRepository.findAll(PageRequest.of(page, size, Sort.by("id")));
+        return PageResponse.from(users.map(userMapper::toResponse));
     }
 
 
     @Transactional
-    @CacheEvict(value = "users", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "users", allEntries = true),
+            @CacheEvict(value = "orders", allEntries = true) // the user's orders are deleted with the user
+    })
     public void delete(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("user.not.found", id));
@@ -84,10 +87,7 @@ public class UserService {
 
 
     @Transactional
-    @Caching(
-            put = @CachePut(value = "users", key = "#id"),
-            evict = @CacheEvict(value = "users", key = "'all'")
-    )
+    @CacheEvict(value = "users", allEntries = true)
     public UserDto.Response update(Long id, UserDto.UpdateRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("user.not.found", id));

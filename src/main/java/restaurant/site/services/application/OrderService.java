@@ -5,7 +5,11 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import restaurant.site.dto.OrderDto;
+import restaurant.site.dto.PageResponse;
 import restaurant.site.dto.OrderItemDto;
 import restaurant.site.entity.Item;
 import restaurant.site.entity.Order;
@@ -21,7 +25,6 @@ import restaurant.site.repo.UserRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -99,35 +102,31 @@ public class OrderService {
         return orderMapper.toResponse(order);
     }
 
+    // newest orders first (id breaks ties so the order of pages is stable)
+    private static final Sort NEWEST_FIRST = Sort.by(Sort.Direction.DESC, "createdAt", "id");
+
     @Transactional(readOnly = true)
-    @Cacheable(value = "orders", key = "'user: ' + #userId")
-    public List<OrderDto.Response> getOrdersByUser(Long userId) {
+    @Cacheable(value = "orders", key = "'user:' + #userId + ':' + #page + ':' + #size")
+    public PageResponse<OrderDto.Response> getOrdersByUser(Long userId, int page, int size) {
 
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("user.not.found", userId);
         }
-        return orderRepository.findByUserId(userId)
-                .stream()
-                .map(orderMapper::toResponse)
-                .collect(Collectors.toList());
+        Page<Order> orders = orderRepository.findByUserId(userId, PageRequest.of(page, size, NEWEST_FIRST));
+        return PageResponse.from(orders.map(orderMapper::toResponse));
     }
 
+    // status == null -> all orders
     @Transactional(readOnly = true)
-    @Cacheable(value = "orders", key = "#status")
-    public List<OrderDto.Response> getOrdersByStatus(Order.Status status) {
-        return orderRepository.findByStatus(status)
-                .stream()
-                .map(orderMapper::toResponse)
-                .collect(Collectors.toList());
-    }
+    @Cacheable(value = "orders", key = "'list:' + #status + ':' + #page + ':' + #size")
+    public PageResponse<OrderDto.Response> getOrders(Order.Status status, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size, NEWEST_FIRST);
 
-    @Transactional(readOnly = true)
-    @Cacheable(value = "orders", key = "'all'")
-    public List<OrderDto.Response> getAllOrders() {
-        return orderRepository.findAll()
-                .stream()
-                .map(orderMapper::toResponse)
-                .collect(Collectors.toList());
+        Page<Order> orders = status == null
+                ? orderRepository.findAll(pageable)
+                : orderRepository.findByStatus(status, pageable);
+
+        return PageResponse.from(orders.map(orderMapper::toResponse));
     }
 
     @Transactional

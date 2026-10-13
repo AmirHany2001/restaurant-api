@@ -54,7 +54,7 @@ public class CategoryService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "category" , key = "'all'")
+    @Cacheable(value = "category" , key = "'list'")
     public List<CategoryDto.Response> getAll(){
         return categoryRepository.findAll().stream()
                 .map(categoryMapper::toResponse).collect(Collectors.toList());
@@ -62,7 +62,7 @@ public class CategoryService {
 
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "category" , key = "#name.toLowerCase()")
+    @Cacheable(value = "category" , key = "'name:' + #name.toLowerCase()")
     public CategoryDto.Response getByName(String name){
 
         return categoryRepository.findByNameIgnoreCase(name)

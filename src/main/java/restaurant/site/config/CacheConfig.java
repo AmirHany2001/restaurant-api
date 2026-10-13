@@ -29,6 +29,17 @@ public class CacheConfig {
     }
 
     private RedisCacheConfiguration redisCacheConfiguration() {
+        return RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(10)) // stale data disappears by itself
+                .disableCachingNullValues()
+                .serializeKeysWith(RedisSerializationContext.SerializationPair
+                        .fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair
+                        .fromSerializer(jsonSerializer()));
+    }
+
+    // package-private so a test can use exactly the serializer the cache uses
+    static GenericJacksonJsonRedisSerializer jsonSerializer() {
 
         // Only allow our own DTOs + basic JDK types to be read back from Redis
         PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
@@ -39,16 +50,8 @@ public class CacheConfig {
                 .allowIfSubType("java.math.") // BigDecimal
                 .build();
 
-        GenericJacksonJsonRedisSerializer jsonSerializer = GenericJacksonJsonRedisSerializer.builder()
+        return GenericJacksonJsonRedisSerializer.builder()
                 .enableDefaultTyping(typeValidator)
                 .build();
-
-        return RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(10)) // stale data disappears by itself
-                .disableCachingNullValues()
-                .serializeKeysWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(jsonSerializer));
     }
 }

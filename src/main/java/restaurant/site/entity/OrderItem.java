@@ -2,7 +2,6 @@ package restaurant.site.entity;
 
 import java.math.BigDecimal;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
