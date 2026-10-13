@@ -1,0 +1,9 @@
+# Production: start with SPRING_PROFILES_ACTIVE=prod
+spring:
+  jpa:
+    hibernate:
+      # validate: only checks that the tables match the entities and fails at startup
+      # if they do not. It never creates or changes tables, so the schema must be created
+      # beforehand (SQL script now, Flyway migrations later).
+      ddl-auto: validate
+    show-sql: false

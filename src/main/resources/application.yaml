@@ -2,6 +2,10 @@ spring:
   application:
     name: Restaurant
 
+  # Which profile runs when none is chosen. In production start the app with
+  # SPRING_PROFILES_ACTIVE=prod (see application-prod.yaml).
+  profiles:
+    default: dev
 
   datasource:
     driver-class-name: ${DB-DRIVER}
@@ -9,11 +13,8 @@ spring:
     username: ${DB-USERNAME}
     password: ${DB-PASSWORD}
 
-  # JPA and Hibernate Configuration for Oracle
-  jpa:
-    hibernate:
-      ddl-auto: create
-    show-sql: true
+  # JPA / Hibernate. ddl-auto and show-sql are set per profile:
+  #   application-dev.yaml  and  application-prod.yaml
 
   # Cache
   data:
@@ -31,4 +32,3 @@ application:
     admin:
       email: ${ADMIN-EMAIL:}
       password: ${ADMIN-PASSWORD:}
-
