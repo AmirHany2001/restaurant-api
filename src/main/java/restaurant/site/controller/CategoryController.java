@@ -10,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import restaurant.site.dto.CategoryDto;
+import restaurant.site.dto.MessageResponse;
 import restaurant.site.services.application.CategoryService;
+import restaurant.site.services.language.ChooseLanguageService;
 
 import java.util.List;
 
@@ -20,31 +22,30 @@ import java.util.List;
 @NullMarked
 public class CategoryController {
     private final CategoryService categoryService;
+    private final ChooseLanguageService chooseLanguageService;
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/createCategory")
+    @PostMapping
     public ResponseEntity<CategoryDto.Response> create(@Valid @RequestBody CategoryDto.Request request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.create(request));
     }
 
-    @GetMapping("/getCategories")
+    @GetMapping
     public ResponseEntity<List<CategoryDto.Response>> getAll() {
         return ResponseEntity.ok(categoryService.getAll());
     }
 
-    @GetMapping("/getCategoryByName/{name}")
+    @GetMapping("/{name}")
     public ResponseEntity<CategoryDto.Response> getByName(@PathVariable @NotBlank String name) {
         return ResponseEntity.ok(categoryService.getByName(name));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/deleteCategory/{name}")
-    public ResponseEntity<Void> delete(@PathVariable @NotBlank String name) {
+    @DeleteMapping("/{name}")
+    public ResponseEntity<MessageResponse> delete(@PathVariable @NotBlank String name) {
         categoryService.delete(name);
-        return ResponseEntity.accepted().eTag("category.deleted.successfully").build();
+        return ResponseEntity.ok(new MessageResponse(
+                chooseLanguageService.getAcceptedLanguageMessage("category.deleted.successfully")));
     }
-
-
-
 
 }

@@ -18,7 +18,7 @@ import restaurant.site.repo.UserRepository;
 //   - no user with that email   -> creates an ADMIN
 //   - user exists, not an admin -> promotes it to ADMIN
 //   - user already an admin     -> does nothing (the password is never reset)
-// Later admins are managed by existing admins through PUT /users/changeRole/{id}.
+// Later admins are managed by existing admins through PUT /users/{id}/role.
 @Slf4j
 @Component
 @RequiredArgsConstructor
