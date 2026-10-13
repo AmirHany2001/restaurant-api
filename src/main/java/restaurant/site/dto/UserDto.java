@@ -23,7 +23,7 @@ public class UserDto {
         private String email;
 
         @NotEmpty(message = "user.password.required")
-        @Size(min = 8, message = "user.password.size")
+        @Size(min = 8, max = 72, message = "user.password.size")
         @Pattern(
                 regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).*$",
                 message = "user.password.invalid"
@@ -55,7 +55,7 @@ public class UserDto {
         @Email(message = "user.email.invalid")
         private String email;
 
-        @Size(min = 8, message = "user.password.size")
+        @Size(min = 8, max = 72, message = "user.password.size")
         @Pattern(
                 regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).*$",
                 message = "user.password.invalid"
