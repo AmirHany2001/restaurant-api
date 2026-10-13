@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor // prevents infinite loop when printing
+@NoArgsConstructor
 public class User {
 
     @Id
@@ -35,7 +35,7 @@ public class User {
     private String address;
 
     @OneToMany(mappedBy = "user" , cascade = CascadeType.ALL)
-    List<Order> orders ;
+    private List<Order> orders;
 
 
     @Enumerated(EnumType.STRING)

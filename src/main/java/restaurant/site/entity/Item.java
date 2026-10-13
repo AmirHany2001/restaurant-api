@@ -8,7 +8,7 @@ import lombok.*;
 import java.util.Map;
 
 @Entity
-@Table(name = "Items")
+@Table(name = "items")
 @Setter
 @Getter
 @AllArgsConstructor
@@ -19,7 +19,9 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    // unique: the service checks duplicates, but two requests at the same moment can both pass
+    // that check. Only a database constraint stops them (the error is then handled as a 409).
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)

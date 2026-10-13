@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor // prevents infinite loop when printing
+@NoArgsConstructor
 public class Order {
 
     @Id
