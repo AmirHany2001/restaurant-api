@@ -18,8 +18,14 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- Newer than the versions Spring Boot 4.1.1 manages (tomcat 11.0.24, logback 1.5.38,
+             jackson 3.1.5, mysql 9.7.0). Keep only while they are newer; delete each override
+             once Spring Boot ships the same version or a newer one. -->
         <tomcat.version>11.0.26</tomcat.version>
         <logback.version>1.6.3</logback.version>
+        <!-- Jackson 2 is only pulled in by jjwt-jackson (the app itself uses Jackson 3, see the
+             dependencyManagement below). 2.21.5 has known DoS CVEs; 2.22.3 contains the fixes. -->
+        <jackson-2-bom.version>2.22.3</jackson-2-bom.version>
     </properties>
 
     <dependencyManagement>
@@ -62,21 +68,13 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.32</version>
-            <!--  Updated from 1.18.30  -->
             <optional>true</optional>
         </dependency>
-        <!--  MapStruct — runtime jar only, NO processor here  -->
+        <!--  MapStruct — runtime jar only; the processor is configured in the compiler plugin below  -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>1.5.5.Final</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct-processor</artifactId>
-            <version>1.5.5.Final</version>
-            <scope>provided</scope>
         </dependency>
         <!--  JWT  -->
         <dependency>
@@ -107,11 +105,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 
@@ -120,14 +113,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
                 <configuration>
                     <annotationProcessorPaths>
                         <!--  1. Lombok MUST run FIRST to generate getters/setters  -->
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.32</version>
+                            <version>${lombok.version}</version> <!-- the version Spring Boot manages -->
                         </path>
                         <!--  2. Lombok-MapStruct binding MUST run SECOND  -->
                         <path>
