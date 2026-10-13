@@ -1,4 +1,9 @@
 # Local development (the default profile)
+application:
+  cors:
+    # typical local frontends (React/Next on 3000, Vite on 5173)
+    allowed-origins: ${CORS-ALLOWED-ORIGINS:http://localhost:3000,http://localhost:5173}
+
 spring:
   jpa:
     hibernate:

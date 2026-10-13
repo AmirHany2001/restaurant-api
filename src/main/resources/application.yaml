@@ -24,6 +24,9 @@ spring:
       timeout: 5000ms
 
 application:
+  cors:
+    # comma separated list of frontend origins allowed to call the API from a browser
+    allowed-origins: ${CORS-ALLOWED-ORIGINS:}
   security:
     jwt:
       secret-key: ${JWT-SECRET-KEY}
