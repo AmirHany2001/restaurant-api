@@ -19,6 +19,7 @@ public class MessageSourceConfig {
         ResourceBundleMessageSource source = new ResourceBundleMessageSource();
         source.setBasename("i18n/messages");        // reads messages.properties and messages_ar.properties
         source.setDefaultEncoding("UTF-8");    // required for Arabic characters
+        source.setFallbackToSystemLocale(false); // unknown language (e.g. fr) -> default messages.properties, not the OS language
         source.setUseCodeAsDefaultMessage(true); // returns key if message not found instead of throwing error
         return source;
     }

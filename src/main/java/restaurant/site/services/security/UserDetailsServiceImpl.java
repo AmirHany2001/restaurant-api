@@ -32,6 +32,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                                 ROLE + user.getRole().name()))
                 ))
                 .orElseThrow(() -> new NotFoundException(
-                        "user.not.found.email" + email));
+                        "user.not.found.email"));
     }
 }

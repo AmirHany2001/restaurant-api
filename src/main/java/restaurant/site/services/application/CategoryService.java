@@ -30,7 +30,7 @@ public class CategoryService {
     public CategoryDto.Response create(CategoryDto.Request request) {
 
         if (categoryRepository.existsByNameIgnoreCase(request.getName())) {
-            throw new DuplicateResourceException("category.duplicate.name");
+            throw new DuplicateResourceException("category.duplicate.name", request.getName());
         }
         Category category = categoryMapper.toEntity(request);
 

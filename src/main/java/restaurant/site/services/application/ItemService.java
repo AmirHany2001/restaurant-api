@@ -42,7 +42,7 @@ public class ItemService {
     public ItemDto.Response addItem(ItemDto.adminRequest request){
 
         if(itemRepository.existsByNameIgnoreCase(request.getName())){
-            throw new DuplicateResourceException("item.duplicate.name");
+            throw new DuplicateResourceException("item.duplicate.name", request.getName());
         }
 
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -64,7 +64,7 @@ public class ItemService {
     })
     public void changePrice (long id , Map<Item.ItemSize, BigDecimal> newPrice){
         Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("item.not.found"));
+                .orElseThrow(() -> new NotFoundException("item.not.found", id));
 
         if (newPrice == null || newPrice.isEmpty()) {
             throw new BusinessLogicException("item.price.required");
@@ -96,7 +96,7 @@ public class ItemService {
     public void deleteItem(long id){
 
         if (!itemRepository.existsById(id)) {
-            throw new NotFoundException("item.not.found");
+            throw new NotFoundException("item.not.found", id);
         }
 
         // order history must keep pointing to a real item
@@ -117,7 +117,7 @@ public class ItemService {
     public void changeState(long id , Item.Status status){
 
         Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("item.not.found"));
+                .orElseThrow(() -> new NotFoundException("item.not.found", id));
 
         if(status == null || Objects.equals(status, item.getStatus())){
             throw new BusinessLogicException("item.status.duplicate");
@@ -131,7 +131,7 @@ public class ItemService {
     @Cacheable(value = "items", key = "#id")
     public ItemDto.Response getItemById(long id){
         Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("item.not.found"));
+                .orElseThrow(() -> new NotFoundException("item.not.found", id));
 
         return itemMapper.toResponse(item);
     }
@@ -160,7 +160,7 @@ public class ItemService {
     @Cacheable(value = "items", key = "'itemId: ' + #id +' '+'itemSize: ' + #size")
     public BigDecimal getItemPriceBySize(long id , Item.ItemSize size){
         Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("item.not.found"));
+                .orElseThrow(() -> new NotFoundException("item.not.found", id));
 
         BigDecimal price = item.getPrice().get(size);
         if (price == null) { // the cache does not accept null values

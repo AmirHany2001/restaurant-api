@@ -53,11 +53,11 @@ public class OrderService {
         for(OrderItemDto items : request.getOrderItems()) {
 
             Item item = itemRepository.findByNameIgnoreCase(items.getItemName())
-                    .orElseThrow(()->new NotFoundException("item.not.found"));
+                    .orElseThrow(()->new NotFoundException("item.not.found.name", items.getItemName()));
 
 
             if(item.getStatus() != Item.Status.available){
-                throw new BusinessLogicException("order.item.unavailable");
+                throw new BusinessLogicException("order.item.unavailable", item.getName());
             }
 
             if(items.getQuantity() == null ||items.getQuantity() <= 0  ) {
@@ -95,7 +95,7 @@ public class OrderService {
     @Cacheable(value = "orders", key = "#id")
     public OrderDto.Response getOrderById(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("order.not.found"));
+                .orElseThrow(() -> new NotFoundException("order.not.found", id));
         return orderMapper.toResponse(order);
     }
 
@@ -104,7 +104,7 @@ public class OrderService {
     public List<OrderDto.Response> getOrdersByUser(Long userId) {
 
         if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("{user.not.found}");
+            throw new NotFoundException("user.not.found", userId);
         }
         return orderRepository.findByUserId(userId)
                 .stream()
@@ -135,7 +135,7 @@ public class OrderService {
     public OrderDto.Response updateOrderStatus(long id, Order.Status status) {
 
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("order.not.found"));
+                .orElseThrow(() -> new NotFoundException("order.not.found", id));
 
 
         if (!order.getStatus().canChangeTo(status)) {
@@ -151,11 +151,11 @@ public class OrderService {
     @CacheEvict(value = "orders", allEntries = true)
     public void cancelOrder(long id, String email, boolean isAdmin) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("order.not.found"));
+                .orElseThrow(() -> new NotFoundException("order.not.found", id));
 
         // a customer can only cancel his own order; "not found" hides that other orders exist
         if (!isAdmin && !order.getUser().getEmail().equalsIgnoreCase(email)) {
-            throw new NotFoundException("order.not.found");
+            throw new NotFoundException("order.not.found", id);
         }
 
 

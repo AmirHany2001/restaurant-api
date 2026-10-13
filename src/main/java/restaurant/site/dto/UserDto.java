@@ -36,7 +36,7 @@ public class UserDto {
 
 
         @NotBlank(message = "user.address.required")
-        @Size(min = 5, message = "user.address.size")
+        @Size(min = 5, max = 255, message = "user.address.size")
         private String address;
 
     }
@@ -65,7 +65,7 @@ public class UserDto {
         @Pattern(regexp = "^01[0-9]{9}$", message = "user.phone.invalid")
         private String phoneNumber;
 
-        @Size(min = 5, message = "user.address.size")
+        @Size(min = 5, max = 255, message = "user.address.size")
         private String address;
     }
 
