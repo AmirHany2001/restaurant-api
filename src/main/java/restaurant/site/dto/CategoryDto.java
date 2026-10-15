@@ -24,6 +24,7 @@ public class CategoryDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Response{
+        private Long id;
         private String name;
         private List<ItemDto.Response> items;
     }
