@@ -31,6 +31,12 @@ public class OrderDto {
         private List<OrderItemDto> orderItems;
         private BigDecimal totalPrice;
         private Order.Status status ;
+
+        // who ordered and where to deliver (an order is only visible to its owner and to admins)
+        private Long userId;
+        private String customerName;
+        private String customerPhone;
+        private String deliveryAddress;
     }
 
 }
