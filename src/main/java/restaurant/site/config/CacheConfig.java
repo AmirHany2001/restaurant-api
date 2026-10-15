@@ -1,7 +1,9 @@
 package restaurant.site.config;
 
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -17,7 +19,13 @@ import java.time.Duration;
 
 @Configuration
 @EnableCaching // without this, @Cacheable / @CacheEvict are silently ignored
-public class CacheConfig {
+public class CacheConfig implements CachingConfigurer {
+
+    // a Redis problem must not break the API: see LenientCacheErrorHandler
+    @Override
+    public CacheErrorHandler errorHandler() {
+        return new LenientCacheErrorHandler();
+    }
 
     // Spring Boot 4 no longer creates a CacheManager for us (the cache auto-configuration
     // is a separate module), so we create the Redis one ourselves.
