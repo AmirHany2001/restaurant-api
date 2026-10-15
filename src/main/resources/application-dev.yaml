@@ -10,5 +10,5 @@ spring:
       # update: adds missing tables/columns and KEEPS your data between restarts.
       # It never changes or drops existing columns. To rebuild the schema from scratch
       # once, start with the environment variable DDL-AUTO=create (this wipes all data).
-      ddl-auto: ${DDL-AUTO:create}
+      ddl-auto: ${DDL-AUTO:update}
     show-sql: true
