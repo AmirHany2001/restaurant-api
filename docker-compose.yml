@@ -7,8 +7,9 @@
 #   docker compose down -v     ALSO delete the data: an empty database next time
 #
 # Settings come from the .env file next to this one (copy .env.example; .env is git-ignored).
-# The application is configured separately, in keys.env: DB-URL, DB-USERNAME and DB-PASSWORD
-# there must match the values here.
+# It is the same file the API uses, so the database login is written once: SPRING_DATASOURCE_USERNAME and
+# SPRING_DATASOURCE_PASSWORD become the MySQL user and password below. (Compose only reads the names it is
+# told to; the API-only variables in that file, like JWT-SECRET-KEY, are ignored.)
 
 name: restaurant
 
@@ -18,8 +19,8 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-restaurant}
-      MYSQL_USER: ${MYSQL_USER:-restaurant}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env (copy .env.example)}
+      MYSQL_USER: ${SPRING_DATASOURCE_USERNAME:?Set SPRING_DATASOURCE_USERNAME in .env (copy .env.example)}
+      MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?Set SPRING_DATASOURCE_PASSWORD in .env (copy .env.example)}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env (copy .env.example)}
     command:
       - --character-set-server=utf8mb4        # Arabic text needs utf8mb4

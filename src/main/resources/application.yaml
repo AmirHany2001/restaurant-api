@@ -9,7 +9,7 @@ spring:
 
   # No datasource settings here on purpose: the database login does not belong in a file that is committed.
   # Spring Boot reads the standard environment variables SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME and
-  # SPRING_DATASOURCE_PASSWORD (see keys.env.example). The JDBC driver is chosen from the URL.
+  # SPRING_DATASOURCE_PASSWORD (see .env.example). The JDBC driver is chosen from the URL.
 
   # JPA / Hibernate. ddl-auto and show-sql are set per profile:
   #   application-dev.yaml  and  application-prod.yaml

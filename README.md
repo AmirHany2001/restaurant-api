@@ -18,23 +18,26 @@ JWT (jjwt) · MapStruct · Lombok
 
 ## Configuration
 
-The app reads **environment variables**; there is no `.env` loader in the code. Copy
-`keys.env.example` to `keys.env` and fill it in. `keys.env` is git-ignored: **never commit it**.
+All settings live in **one file, `.env`**. Copy `.env.example` to `.env` and fill it in. It is git-ignored:
+**never commit it** (it holds passwords and the JWT key). Docker Compose reads it automatically. The API
+reads **environment variables** (there is no `.env` loader in the code), so load the file as shown in
+"Run it".
 
 | Variable | Required | Meaning |
 |---|---|---|
 | `SPRING_DATASOURCE_URL` | yes | `jdbc:mysql://localhost:3307/restaurant` (3307 = the port Docker publishes MySQL on) |
-| `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` | yes | database login: the same as `MYSQL_USER` / `MYSQL_PASSWORD` in `.env` |
+| `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` | yes | database login. Docker creates the MySQL user from these same two values, so they are written once |
 | `SPRING_DATA_REDIS_HOST`, `SPRING_DATA_REDIS_PORT` | no | only if Redis is not on `localhost:6379` (the default, and what Docker publishes) |
 | `JWT-SECRET-KEY` | yes | Base64 of at least 32 random bytes: `openssl rand -base64 48`. The app refuses to start with a shorter or invalid key |
 | `JWT-EXPIRATION` | yes | token lifetime in milliseconds (`3600000` = 1 hour) |
 | `ADMIN-EMAIL`, `ADMIN-PASSWORD` | no | creates (or promotes) an admin at startup when both are set; password at least 8 characters |
 | `CORS-ALLOWED-ORIGINS` | prod | comma-separated browser origins allowed to call the API |
 | `DDL-AUTO` | no | dev only. `create` wipes and rebuilds all tables once; default `update` |
+| `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_PORT`, `REDIS_PORT` | Docker | used only by `docker-compose.yml`: MySQL root password, database name, ports on your computer |
 
 ### Docker stack (MySQL and Redis)
 
-Copy `.env.example` to `.env` (git-ignored) and choose the passwords, then:
+With `.env` in place (see above), start the stack:
 
 ```bash
 docker compose up -d       # start MySQL and Redis (the first time it downloads the images)
@@ -47,8 +50,11 @@ docker compose down -v     # stop AND delete the data (an empty database next ti
 - Docker Desktop must be running whenever you work on the API.
 - MySQL is published on port **3307** and Redis on **6379**, on `127.0.0.1` only (not reachable from the network).
   Port 3307 keeps it away from a MySQL installed on Windows, which uses 3306.
-- The two files have different jobs: `.env` configures the containers, `keys.env` configures the API.
-  The database user and password must be the same in both.
+- The database login is in `.env` once (`SPRING_DATASOURCE_USERNAME` / `_PASSWORD`): Docker creates the MySQL
+  user from it **the first time** the database is created (changing it later does not change the existing
+  MySQL user), and the API logs in with it.
+- Names with a hyphen (`JWT-SECRET-KEY`, `ADMIN-EMAIL`, ...) are read by the API only. Docker Compose ignores
+  them, and cannot reference such names in `docker-compose.yml` (it would misread `${JWT-SECRET-KEY}`).
 
 ### Profiles
 
@@ -65,13 +71,13 @@ are allowed.
 
 Start the stack first (`docker compose up -d`).
 
-**IntelliJ:** create a run configuration for `restaurant.site.SiteApplication` and load `keys.env`
+**IntelliJ:** create a run configuration for `restaurant.site.SiteApplication` and load `.env`
 as its environment variables.
 
-**Command line** (PowerShell, loads `keys.env` into the current session):
+**Command line** (PowerShell, loads `.env` into the current session):
 
 ```powershell
-Get-Content keys.env | Where-Object { $_ -match '^\s*[^#=\s][^=]*=' } | ForEach-Object { $k,$v = $_ -split '=',2; Set-Item -Path "env:$($k.Trim())" -Value $v.Trim() }
+Get-Content .env | Where-Object { $_ -match '^\s*[^#=\s][^=]*=' } | ForEach-Object { $k,$v = $_ -split '=',2; Set-Item -Path "env:$($k.Trim())" -Value $v.Trim() }
 ./mvnw spring-boot:run
 ```
 
