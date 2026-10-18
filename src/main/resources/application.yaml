@@ -11,6 +11,13 @@ spring:
   # Spring Boot reads the standard environment variables SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME and
   # SPRING_DATASOURCE_PASSWORD (see .env.example). The JDBC driver is chosen from the URL.
 
+  # Flyway builds and upgrades the tables from src/main/resources/db/migration (V1__..., V2__...).
+  flyway:
+    # A database that already has tables but no Flyway history (one created before Flyway was added) is
+    # accepted as already being at V1 instead of failing. A brand-new empty database runs V1 normally.
+    baseline-on-migrate: true
+    baseline-version: 1
+
   # JPA / Hibernate. ddl-auto and show-sql are set per profile:
   #   application-dev.yaml  and  application-prod.yaml
   jpa:

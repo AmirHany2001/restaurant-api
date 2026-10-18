@@ -7,8 +7,7 @@ application:
 spring:
   jpa:
     hibernate:
-      # update: adds missing tables/columns and KEEPS your data between restarts.
-      # It never changes or drops existing columns. To rebuild the schema from scratch
-      # once, start with the environment variable DDL-AUTO=create (this wipes all data).
-      ddl-auto: ${DDL-AUTO:update}
+      # Flyway owns the tables (db/migration). Hibernate only checks at startup that the entities match
+      # them, and fails with a clear message if you changed an entity without writing a migration.
+      ddl-auto: validate
     show-sql: true

@@ -14,7 +14,7 @@ JWT (jjwt) · MapStruct · Lombok
 
 - JDK 21
 - Docker (Docker Desktop on Windows): `docker-compose.yml` runs MySQL 8.4 and Redis 7 for development.
-  The database `restaurant` is created by Docker and its tables by the API on its first start.
+  The database `restaurant` is created by Docker and its tables by the API on its first start (Flyway runs the migrations in `src/main/resources/db/migration`).
 
 ## Configuration
 
@@ -32,7 +32,6 @@ reads **environment variables** (there is no `.env` loader in the code), so load
 | `JWT-EXPIRATION` | yes | token lifetime in milliseconds (`3600000` = 1 hour) |
 | `ADMIN-EMAIL`, `ADMIN-PASSWORD` | no | creates (or promotes) an admin at startup when both are set; password at least 8 characters |
 | `CORS-ALLOWED-ORIGINS` | prod | comma-separated browser origins allowed to call the API |
-| `DDL-AUTO` | no | dev only. `create` wipes and rebuilds all tables once; default `update` |
 | `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_PORT`, `REDIS_PORT` | Docker | used only by `docker-compose.yml`: MySQL root password, database name, ports on your computer |
 
 ### Docker stack (MySQL and Redis)
@@ -60,12 +59,25 @@ docker compose down -v     # stop AND delete the data (an empty database next ti
 
 | Profile | When | Database schema | SQL logging |
 |---|---|---|---|
-| `dev` (default) | local work | `ddl-auto: update` keeps your data between restarts | on |
-| `prod` | `SPRING_PROFILES_ACTIVE=prod` | `validate`: only checks the schema, never changes it | off |
+| `dev` (default) | local work | Flyway migrations, then `validate` | on |
+| `prod` | `SPRING_PROFILES_ACTIVE=prod` | Flyway migrations, then `validate` | off |
 
-`prod` expects the tables to exist already (there are no migrations yet), and CORS is empty until
+CORS is empty in `prod` until
 you set `CORS-ALLOWED-ORIGINS`. In `dev` the browser origins `localhost:3000` and `localhost:5173`
 are allowed.
+
+### Database changes (Flyway)
+
+The tables are created and upgraded by SQL files in `src/main/resources/db/migration`, named
+`V1__create_tables.sql`, `V2__...sql`, ... Each file runs once, in order, and Flyway records it in the table
+`flyway_schema_history`. To change the database (a new column, a new table):
+
+1. Change the entity.
+2. Add the next file, e.g. `V2__add_something.sql`, with the SQL.
+3. Start the app. **Never edit a file that has already run**: Flyway refuses to start if one changed.
+
+Hibernate only *validates* (`ddl-auto: validate`): if an entity and the tables disagree, the app stops at startup
+with a clear message. A database created before Flyway existed is adopted as already being at V1.
 
 ## Run it
 
@@ -178,7 +190,7 @@ src/main/resources/i18n/   messages.properties (default = English), messages_en,
 
 ## Known limitations
 
-- No refresh tokens, no schema migrations (Flyway), no Docker image of the API itself (only MySQL and Redis run in Docker) and no payments yet.
+- No refresh tokens, no Docker image of the API itself (only MySQL and Redis run in Docker) and no payments yet.
 - Deleting a user also deletes their orders.
 - The login limiter is in memory: it is per instance and resets on restart.
 - Behind a reverse proxy the limiter sees the proxy's address unless forwarded headers are configured.
