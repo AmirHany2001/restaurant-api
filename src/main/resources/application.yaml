@@ -7,11 +7,9 @@ spring:
   profiles:
     default: dev
 
-  datasource:
-    driver-class-name: ${DB-DRIVER}
-    url: ${DB-URL}
-    username: ${DB-USERNAME}
-    password: ${DB-PASSWORD}
+  # No datasource settings here on purpose: the database login does not belong in a file that is committed.
+  # Spring Boot reads the standard environment variables SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME and
+  # SPRING_DATASOURCE_PASSWORD (see keys.env.example). The JDBC driver is chosen from the URL.
 
   # JPA / Hibernate. ddl-auto and show-sql are set per profile:
   #   application-dev.yaml  and  application-prod.yaml
@@ -22,11 +20,10 @@ spring:
         # instead of one query per row (the "N+1" problem)
         default_batch_fetch_size: 50
 
-  # Cache
+  # Redis (the cache). host and port are not set: Spring Boot's defaults are localhost:6379, which is what
+  # docker compose publishes. To use another Redis set SPRING_DATA_REDIS_HOST / SPRING_DATA_REDIS_PORT.
   data:
     redis:
-      host: ${CACHE-HOST}
-      port: ${CACHE-PORT}
       timeout: 5000ms
 
 application:

@@ -1,0 +1,56 @@
+# Local development stack: MySQL + Redis.
+#
+#   docker compose up -d       start (the first time it also downloads the images)
+#   docker compose ps          state and health of each service
+#   docker compose logs -f     follow the logs
+#   docker compose down        stop and remove the containers. The DATA IS KEPT (named volume below)
+#   docker compose down -v     ALSO delete the data: an empty database next time
+#
+# Settings come from the .env file next to this one (copy .env.example; .env is git-ignored).
+# The application is configured separately, in keys.env: DB-URL, DB-USERNAME and DB-PASSWORD
+# there must match the values here.
+
+name: restaurant
+
+services:
+  mysql:
+    image: mysql:8.4   # a long-term-support release, pinned on purpose ("latest" can change under you)
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-restaurant}
+      MYSQL_USER: ${MYSQL_USER:-restaurant}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env (copy .env.example)}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env (copy .env.example)}
+    command:
+      - --character-set-server=utf8mb4        # Arabic text needs utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci # case-insensitive comparisons ("Pizza" = "pizza")
+    ports:
+      # 127.0.0.1 = reachable from this computer only, NOT from the network (the dev password is weak)
+      - "127.0.0.1:${MYSQL_PORT:-3307}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      # -h 127.0.0.1 (TCP) on purpose: while the database is being created for the first time MySQL
+      # answers only on a local socket, and a plain "ping" would report "healthy" too early
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Redis is only a cache here: no snapshots on disk, at most 128 MB, and when it is full it drops
+    # the least recently used entries instead of refusing to store new ones.
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  mysql-data:

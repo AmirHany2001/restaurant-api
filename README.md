@@ -13,8 +13,8 @@ JWT (jjwt) · MapStruct · Lombok
 ## Requirements
 
 - JDK 21
-- MySQL with an **empty database named `restaurant`** (the tables are created on first start)
-- Redis (see "Redis" below: the API still works without it, only slower)
+- Docker (Docker Desktop on Windows): `docker-compose.yml` runs MySQL 8.4 and Redis 7 for development.
+  The database `restaurant` is created by Docker and its tables by the API on its first start.
 
 ## Configuration
 
@@ -23,15 +23,32 @@ The app reads **environment variables**; there is no `.env` loader in the code. 
 
 | Variable | Required | Meaning |
 |---|---|---|
-| `DB-DRIVER` | yes | `com.mysql.cj.jdbc.Driver` |
-| `DB-URL` | yes | e.g. `jdbc:mysql://localhost:3306/restaurant` |
-| `DB-USERNAME`, `DB-PASSWORD` | yes | database login |
-| `CACHE-HOST`, `CACHE-PORT` | yes | Redis, e.g. `localhost` / `6379` |
+| `SPRING_DATASOURCE_URL` | yes | `jdbc:mysql://localhost:3307/restaurant` (3307 = the port Docker publishes MySQL on) |
+| `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` | yes | database login: the same as `MYSQL_USER` / `MYSQL_PASSWORD` in `.env` |
+| `SPRING_DATA_REDIS_HOST`, `SPRING_DATA_REDIS_PORT` | no | only if Redis is not on `localhost:6379` (the default, and what Docker publishes) |
 | `JWT-SECRET-KEY` | yes | Base64 of at least 32 random bytes: `openssl rand -base64 48`. The app refuses to start with a shorter or invalid key |
 | `JWT-EXPIRATION` | yes | token lifetime in milliseconds (`3600000` = 1 hour) |
 | `ADMIN-EMAIL`, `ADMIN-PASSWORD` | no | creates (or promotes) an admin at startup when both are set; password at least 8 characters |
 | `CORS-ALLOWED-ORIGINS` | prod | comma-separated browser origins allowed to call the API |
 | `DDL-AUTO` | no | dev only. `create` wipes and rebuilds all tables once; default `update` |
+
+### Docker stack (MySQL and Redis)
+
+Copy `.env.example` to `.env` (git-ignored) and choose the passwords, then:
+
+```bash
+docker compose up -d       # start MySQL and Redis (the first time it downloads the images)
+docker compose ps          # both must say "healthy"
+docker compose logs -f     # follow the logs
+docker compose down        # stop; the database is KEPT in a Docker volume
+docker compose down -v     # stop AND delete the data (an empty database next time)
+```
+
+- Docker Desktop must be running whenever you work on the API.
+- MySQL is published on port **3307** and Redis on **6379**, on `127.0.0.1` only (not reachable from the network).
+  Port 3307 keeps it away from a MySQL installed on Windows, which uses 3306.
+- The two files have different jobs: `.env` configures the containers, `keys.env` configures the API.
+  The database user and password must be the same in both.
 
 ### Profiles
 
@@ -45,6 +62,8 @@ you set `CORS-ALLOWED-ORIGINS`. In `dev` the browser origins `localhost:3000` an
 are allowed.
 
 ## Run it
+
+Start the stack first (`docker compose up -d`).
 
 **IntelliJ:** create a run configuration for `restaurant.site.SiteApplication` and load `keys.env`
 as its environment variables.
@@ -61,9 +80,10 @@ The API listens on `http://localhost:8080`.
 ### Redis
 
 Everything the API caches (menu, orders, users) is also in MySQL, so the cache is only an
-optimisation. If Redis is down, the app **keeps working**: cache errors are logged as warnings
-and the request is served from the database. Cached entries expire after 10 minutes and every
-write evicts the entries it affects. A quick local Redis: `docker run -d --name redis -p 6379:6379 redis:7`.
+optimisation. If Redis is down, the app **keeps working** but **slowly**: cache errors are logged as warnings and
+the request is served from the database, but every cached request first waits for the Redis timeout
+(currently 5 seconds) before it gives up. Lowering that timeout is the next configuration step. Cached entries expire after 10 minutes and every
+write evicts the entries it affects. In Docker, Redis keeps nothing on disk, uses at most 128 MB and drops the least recently used entries when full.
 
 ### First admin
 
@@ -124,7 +144,7 @@ Actions without data answer `{ "message": "..." }`. Money is `BigDecimal` with 2
 
 Unit tests for the services and security tests that send real HTTP requests through the real
 security chain (JWT filter, roles, ownership, error format) with the services mocked. They need
-**no database and no Redis**. `SiteApplicationTests` (starts the whole app) only runs when `DB-URL`
+**no database and no Redis**. `SiteApplicationTests` (starts the whole app) only runs when `SPRING_DATASOURCE_URL`
 is set in the environment and is skipped otherwise.
 
 ## Project layout
@@ -151,7 +171,7 @@ src/main/resources/i18n/   messages.properties (default = English), messages_en,
 
 ## Known limitations
 
-- No refresh tokens, no schema migrations (Flyway), no Docker files and no payments yet.
+- No refresh tokens, no schema migrations (Flyway), no Docker image of the API itself (only MySQL and Redis run in Docker) and no payments yet.
 - Deleting a user also deletes their orders.
 - The login limiter is in memory: it is per instance and resets on restart.
 - Behind a reverse proxy the limiter sees the proxy's address unless forwarded headers are configured.
