@@ -34,7 +34,6 @@ build/
 .env
 
 ### Secrets and local settings ###
-keys.env
 *.env
 !*.env.example
 .claude/settings.local.json
