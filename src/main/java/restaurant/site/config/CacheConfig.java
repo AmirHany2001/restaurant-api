@@ -1,5 +1,7 @@
 package restaurant.site.config;
 
+import io.lettuce.core.ClientOptions;
+import org.springframework.boot.data.redis.autoconfigure.LettuceClientConfigurationBuilderCustomizer;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
@@ -25,6 +27,15 @@ public class CacheConfig implements CachingConfigurer {
     @Override
     public CacheErrorHandler errorHandler() {
         return new LenientCacheErrorHandler();
+    }
+
+    // While Redis is unreachable Lettuce normally QUEUES commands and makes them wait for the timeout.
+    // Rejecting them instead makes the cache fail at once, and LenientCacheErrorHandler sends the request to the DB.
+    @Bean
+    public LettuceClientConfigurationBuilderCustomizer failFastWhenDisconnected() {
+        return builder -> builder.clientOptions(ClientOptions.builder()
+                .disconnectedBehavior(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS)
+                .build());
     }
 
     // Spring Boot 4 no longer creates a CacheManager for us (the cache auto-configuration

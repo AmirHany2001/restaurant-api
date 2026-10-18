@@ -24,7 +24,10 @@ spring:
   # docker compose publishes. To use another Redis set SPRING_DATA_REDIS_HOST / SPRING_DATA_REDIS_PORT.
   data:
     redis:
-      timeout: 5000ms
+      # Redis is only a cache, so waiting for it is never worth it: a slow Redis is treated like a missing one
+      # (the request goes to the database, see LenientCacheErrorHandler). Both are overridable per environment.
+      timeout: ${REDIS_COMMAND_TIMEOUT:500ms}          # max wait for one command's answer
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:500ms}  # max wait to open the connection
 
 application:
   cors:

@@ -86,9 +86,10 @@ The API listens on `http://localhost:8080`.
 ### Redis
 
 Everything the API caches (menu, orders, users) is also in MySQL, so the cache is only an
-optimisation. If Redis is down, the app **keeps working** but **slowly**: cache errors are logged as warnings and
-the request is served from the database, but every cached request first waits for the Redis timeout
-(currently 5 seconds) before it gives up. Lowering that timeout is the next configuration step. Cached entries expire after 10 minutes and every
+optimisation. If Redis is down, the app **keeps working**: cache errors are logged as warnings and the request is
+served from the database. Commands are rejected at once while Redis is unreachable (a request measured ~15 ms instead
+of the 5 s it took before), and a Redis that is up but slow is given 500 ms
+(`REDIS_COMMAND_TIMEOUT`, `REDIS_CONNECT_TIMEOUT` change it). When Redis comes back the cache resumes by itself. Cached entries expire after 10 minutes and every
 write evicts the entries it affects. In Docker, Redis keeps nothing on disk, uses at most 128 MB and drops the least recently used entries when full.
 
 ### First admin
